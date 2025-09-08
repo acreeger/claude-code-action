@@ -12,19 +12,14 @@ import { checkContainsTrigger } from "../github/validation/trigger";
 export type AutoDetectedMode = "tag" | "agent";
 
 export function detectMode(context: GitHubContext): AutoDetectedMode {
-  console.log(`[DETECTOR] Starting detectMode - event: ${context.eventName}, action: ${context.eventAction}`);
-  console.log(`[DETECTOR] trackProgress: ${context.inputs.trackProgress}`);
-  
   // Validate track_progress usage
   if (context.inputs.trackProgress) {
-    console.log(`[DETECTOR] Validating track_progress usage`);
     validateTrackProgressEvent(context);
   }
 
   // If track_progress is set for PR/issue events, force tag mode
   if (context.inputs.trackProgress && isEntityContext(context)) {
     if (isPullRequestEvent(context) || isIssuesEvent(context)) {
-      console.log(`[DETECTOR] track_progress=true for PR/issue event - returning tag mode`);
       return "tag";
     }
   }
@@ -36,15 +31,12 @@ export function detectMode(context: GitHubContext): AutoDetectedMode {
       isPullRequestReviewCommentEvent(context) ||
       isPullRequestReviewEvent(context)
     ) {
-      console.log(`[DETECTOR] Comment event detected`);
       // If prompt is provided on comment events, use agent mode
       if (context.inputs.prompt) {
-        console.log(`[DETECTOR] Comment event with prompt - returning agent mode`);
         return "agent";
       }
       // Default to tag mode if @claude mention found
       if (checkContainsTrigger(context)) {
-        console.log(`[DETECTOR] Comment event with trigger - returning tag mode`);
         return "tag";
       }
     }
@@ -52,29 +44,18 @@ export function detectMode(context: GitHubContext): AutoDetectedMode {
 
   // Issue events
   if (isEntityContext(context) && isIssuesEvent(context)) {
-    console.log(`[DETECTOR] Issue event detected`);
-    console.log(`[DETECTOR] context.inputs.prompt type: ${typeof context.inputs.prompt}`);
-    console.log(`[DETECTOR] context.inputs.prompt value: "${context.inputs.prompt}"`);
-    console.log(`[DETECTOR] context.inputs.prompt length: ${context.inputs.prompt?.length}`);
-    console.log(`[DETECTOR] context.inputs.prompt truthy? ${!!context.inputs.prompt}`);
-    
     // If prompt is provided, use agent mode (same as PR events)
     if (context.inputs.prompt) {
-      console.log(`[DETECTOR] Issue event with prompt - returning agent mode`);
       return "agent";
     }
-    console.log(`[DETECTOR] No prompt detected, checking triggers`);
-    
     // Check for @claude mentions or labels/assignees
     if (checkContainsTrigger(context)) {
-      console.log(`[DETECTOR] Issue event with trigger - returning tag mode`);
       return "tag";
     }
   }
 
   // PR events (opened, synchronize, etc.)
   if (isEntityContext(context) && isPullRequestEvent(context)) {
-    console.log(`[DETECTOR] PR event detected`);
     const supportedActions = [
       "opened",
       "synchronize",
@@ -82,17 +63,14 @@ export function detectMode(context: GitHubContext): AutoDetectedMode {
       "reopened",
     ];
     if (context.eventAction && supportedActions.includes(context.eventAction)) {
-      console.log(`[DETECTOR] PR event with supported action: ${context.eventAction}`);
       // If prompt is provided, use agent mode (default for automation)
       if (context.inputs.prompt) {
-        console.log(`[DETECTOR] PR event with prompt - returning agent mode`);
         return "agent";
       }
     }
   }
 
   // Default to agent mode (which won't trigger without a prompt)
-  console.log(`[DETECTOR] No conditions matched - returning default agent mode`);
   return "agent";
 }
 

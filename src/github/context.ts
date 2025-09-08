@@ -153,16 +153,6 @@ export function parseGitHubContext(): GitHubContext {
     },
   };
 
-  // Debug logging for prompt parsing
-  console.log(`[CONTEXT] process.env.PROMPT: "${process.env.PROMPT}"`);
-  console.log(`[CONTEXT] Parsed prompt: "${commonFields.inputs.prompt}"`);
-  console.log(`[CONTEXT] Parsed prompt type: ${typeof commonFields.inputs.prompt}`);
-  console.log(`[CONTEXT] Parsed prompt length: ${commonFields.inputs.prompt?.length}`);
-  console.log(`[CONTEXT] LABEL_TRIGGER: "${process.env.LABEL_TRIGGER}"`);
-  console.log(`[CONTEXT] TRACK_PROGRESS: "${process.env.TRACK_PROGRESS}"`);
-  console.log(`[CONTEXT] Event name: ${context.eventName}`);
-  console.log(`[CONTEXT] Event action: ${context.payload.action}`);
-
   switch (context.eventName) {
     case "issues": {
       const payload = context.payload as IssuesEvent;
